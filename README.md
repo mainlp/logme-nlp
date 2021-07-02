@@ -24,6 +24,9 @@ For example, this is in your `output.txt` file:
 ```
 To run the script:
 ```
-leep = LogExpectedEmpiricalPrediction("output.txt")
-print(leep.compute_leep())
+>>> from leep import LogExpectedEmpiricalPrediction
+>>> leep = LogExpectedEmpiricalPrediction("output.txt")
+>>> leep.compute_leep()
+-8.695098322753905
+
 ```

@@ -19,8 +19,8 @@ class LogExpectedEmpiricalPrediction:
 
     def __init__(self, path: str):
         self.path = path
-        self.label_index_source = defaultdict(int)
-        self.label_index_target = defaultdict(int)
+        self._label_index_source = defaultdict(int)
+        self._label_index_target = defaultdict(int)
 
     def _create_label_indices(self, target_labels: List[Any], source_labels: List[Any]) -> None:
         """Creates a label index of both target labels and source labels
@@ -32,12 +32,16 @@ class LogExpectedEmpiricalPrediction:
 
         :rtype: None
         """
-        cnt = 0
+        cnt_target = 0
+        cnt_source = 0
 
-        for label_target, label_source in zip(target_labels, source_labels):
-            self.label_index_target[label_target] += cnt
-            self.label_index_source[label_source] += cnt
-            cnt += 1
+        for label_target in target_labels:
+            self._label_index_target[label_target] += cnt_target
+            cnt_target += 1
+
+        for label_source in source_labels:
+            self._label_index_source[label_source] += cnt_source
+            cnt_source += 1
 
     def _read_data(self) -> Tuple[List[Any], List[Any], List[Tuple[List, Any]]]:
         """Compute the empirical conditional distribution P_hat(y|z) of the target label y given the source label z
@@ -100,8 +104,8 @@ class LogExpectedEmpiricalPrediction:
 
             for output_probability, gold_target_label in output_probabilities:
 
-                if self.label_index_target[target_label] == self.label_index_target[gold_target_label]:
-                    dummy_output_probabilities.append(output_probability[self.label_index_source[source_label]])
+                if self._label_index_target[target_label] == self._label_index_target[gold_target_label]:
+                    dummy_output_probabilities.append(output_probability[self._label_index_source[source_label]])
 
             # p(y,z) = (sum_{y=Y} theta(x_i)_z) / n
             joint_probability = sum(dummy_output_probabilities) / len(output_probabilities)
@@ -136,7 +140,7 @@ class LogExpectedEmpiricalPrediction:
 
             for (target_label, source_label), joint_probability in joint_distribution.items():
 
-                if self.label_index_target[cls] == self.label_index_source[source_label]:
+                if self._label_index_target[cls] == self._label_index_source[source_label]:
                     # p(y|z) = p(y,z)/p(z)
                     conditional_distribution[(target_label, source_label)] = joint_probability / marginal_z
 
@@ -159,10 +163,10 @@ class LogExpectedEmpiricalPrediction:
             eep = 0
 
             for (_, z_target), conditional in conditional_distribution.items():
-                if self.label_index_source[z_target] != self.label_index_target[target_label]:
+                if self._label_index_source[z_target] != self._label_index_target[target_label]:
                     continue
 
-                eep += conditional * output_probability[self.label_index_source[z_target]]
+                eep += conditional * output_probability[self._label_index_source[z_target]]
 
             if eep != 0:
                 leep += np.log(eep)
