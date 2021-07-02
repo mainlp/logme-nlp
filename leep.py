@@ -170,6 +170,3 @@ class LogExpectedEmpiricalPrediction:
         leep /= len(output_probabilities)
 
         return leep
-
-leep = LogExpectedEmpiricalPrediction("leep.txt")
-print(leep.compute_leep())
