@@ -60,8 +60,8 @@ class LogExpectedEmpiricalPrediction:
 
             for line in data[2:]:
                 line = line.strip()
-                gold_label = line.strip()[-1]
-                dummy_probas = [float(proba) for proba in line.strip()[:-2].strip("][ \n").split(", ")]
+                gold_label = line.split("]")[-1].strip()
+                dummy_probas = [float(proba) for proba in line.strip()[:-len(gold_label)].strip("][ \n").split(", ")]
                 output_probabilities.append((dummy_probas, gold_label))
 
         return target_labels, source_labels, output_probabilities
