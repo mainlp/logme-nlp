@@ -1,4 +1,4 @@
-import itertools
+import argparse, itertools
 from collections import defaultdict
 from typing import Any, Dict, List, Tuple
 
@@ -141,8 +141,11 @@ class LogExpectedEmpiricalPrediction:
             for (target_label, source_label), joint_probability in joint_distribution.items():
 
                 if self._label_index_target[cls] == self._label_index_source[source_label]:
-                    # p(y|z) = p(y,z)/p(z)
-                    conditional_distribution[(target_label, source_label)] = joint_probability / marginal_z
+                    if marginal_z > 0:
+                        # p(y|z) = p(y,z)/p(z)
+                        conditional_distribution[(target_label, source_label)] = joint_probability / marginal_z
+                    else:
+                        conditional_distribution[(target_label, source_label)] = 0.
 
         return conditional_distribution
 
@@ -174,3 +177,16 @@ class LogExpectedEmpiricalPrediction:
         leep /= len(output_probabilities)
 
         return leep
+
+
+def main():
+    arg_parser = argparse.ArgumentParser(description='Log Expected Empirical Prediction (LEEP)')
+    arg_parser.add_argument('predictions', help='path to text file with prediction probabilities')
+    args = arg_parser.parse_args()
+
+    leep = LogExpectedEmpiricalPrediction(args.predictions)
+    print(f"LEEP: {leep.compute_leep()}")
+
+
+if __name__ == '__main__':
+    main()
