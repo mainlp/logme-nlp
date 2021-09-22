@@ -166,7 +166,7 @@ class TransformerEmbeddings(Embeddings):
 
 	def forward(self, sentences):
 		tok_sentences = self.tokenize(sentences)
-		model_inputs = {k: tok_sentences[k] for k in ['input_ids', 'token_type_ids', 'attention_mask']}
+		model_inputs = {k: tok_sentences[k] for k in ['input_ids', 'token_type_ids', 'attention_mask'] if k in tok_sentences}
 
 		# perform embedding forward pass
 		if self._static:
