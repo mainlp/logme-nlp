@@ -97,3 +97,12 @@ The output file follows the format:
 
 It can be supplied to the `leep.py` script to obtain the LEEP score.
 
+### Applying PCA
+
+In order to normalize embeddings of different dimensionalities, larger embeddings can be reduced to their N principal components using Principal Component Analysis (PCA). This is disabled by default and can be enabled by using the `-pca` flag:
+
+```bash
+python embleep.py input.txt output.txt embedding_model \
+	-pca num_components
+```
+

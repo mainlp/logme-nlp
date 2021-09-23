@@ -9,8 +9,8 @@ import numpy as np
 
 class LabelledDataset:
 	def __init__(self, inputs, labels):
-		self._inputs = inputs
-		self._labels = labels
+		self._inputs = inputs  # List(List(Str)): [['t0', 't1', ...], ['t0', 't1', ...]] or List(Str): ['t0 t1 ... tN']
+		self._labels = labels  # List(List(Str)): [['l0', 'l1', ...], ['l0', 'l1', ...]] or List(Str): ['l0', 'l1', ...]
 
 	def __len__(self):
 		return len(list(self.get_flattened_labels()))
@@ -98,6 +98,10 @@ class LeepWriter:
 	def __init__(self, path):
 		self._file_pointer = open(path, 'w', encoding='utf8')
 
+	@staticmethod
+	def _convert_to_leep(probabilities, label):
+		return f'{[float(p) for p in probabilities]} "{label}"\n'
+
 	def write(self, data):
 		self._file_pointer.write(data)
 
@@ -110,4 +114,10 @@ class LeepWriter:
 		self.write(target_labels_str + source_labels_str)
 
 	def write_instance(self, source_probabilities, target_label):
-		self.write(f'{[float(p) for p in source_probabilities]} "{target_label}"\n')
+		self.write(self._convert_to_leep(source_probabilities, target_label))
+
+	def write_instances(self, source_probabilities, target_labels):
+		output = ''
+		for idx in range(source_probabilities.shape[0]):
+			output += self._convert_to_leep(source_probabilities[idx], target_labels[idx])
+		self.write(output)
