@@ -90,9 +90,8 @@ def main():
 			else:
 				seq_embedding = pooling_function(cur_embeddings[sidx])  # (seq_len, emb_dim) -> (emb_dim,)
 				embeddings[eidx, :] = seq_embedding
+				labels.append(cur_labels[sidx])
 				eidx += 1
-				seq_softmax = softmax(seq_embedding)  # (emb_dim,)
-				cur_labels.append(cur_labels[sidx])
 
 		# print progress
 		sys.stdout.write(f"\r[{((bidx * args.batch_size)*100)/len(target_data._inputs):.2f}%] Computing embeddings...")
