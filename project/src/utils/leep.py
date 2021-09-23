@@ -1,4 +1,5 @@
-import argparse, itertools
+import argparse
+import itertools
 from collections import defaultdict
 from typing import Any, Dict, List, Tuple
 
