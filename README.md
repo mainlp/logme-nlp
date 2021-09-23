@@ -7,6 +7,9 @@ Implementation of LEEP: A New Measure to Evaluate Transferability of Learned Rep
 pip3 install --user -r requirements.txt
 ```
 
+## Setup
+Run `sh setup.sh` to create the right directory paths.
+
 ## Calculating LEEP
 
 The class expects a path to a `.txt` file consisting of the following:
