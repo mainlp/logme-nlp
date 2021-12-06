@@ -3,7 +3,7 @@ import logging
 from typing import List
 
 from fasttext import tokenize
-from transformers import AutoTokenizer
+from transformers import AutoTokenizer, AutoConfig
 
 logger = logging.getLogger(__name__)
 
@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 def tokenize_text(args: argparse.Namespace, X_train: List[str]) -> List[List[str]]:
     if args.tokenizer:
         try:
-            tokenizer = AutoTokenizer.from_pretrained(args.tokenizer)
+            tokenizer = AutoTokenizer.from_pretrained(args.tokenizer, config=AutoConfig.from_pretrained(args.tokenizer))
             tokenized = [tokenizer.tokenize(sentence) for sentence in X_train]
 
         except OSError:
