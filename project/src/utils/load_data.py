@@ -19,8 +19,12 @@ def get_dataset(args: argparse.Namespace) -> Tuple[List[str], List[str], List[st
             exit(1)
 
     elif args.train_path and args.test_path:
-        train = load_dataset("csv", data_files=str(args.train_path))["train"]
-        test = load_dataset("csv", data_files=str(args.test_path))["train"]
+        if args.train_path.endswith("csv"):
+            train = load_dataset("csv", data_files=str(args.train_path))["train"]
+            test = load_dataset("csv", data_files=str(args.test_path))["train"]
+        else:
+            train = load_dataset("tsv", data_files=str(args.train_path))["train"]
+            test = load_dataset("tsv", data_files=str(args.test_path))["train"]
         logging.debug(f"Dataset Info: {train}")
 
         try:
