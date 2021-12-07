@@ -37,6 +37,13 @@ def get_dataset(args: argparse.Namespace) -> Tuple[List[str], List[str], List[st
         logging.error(f"Cannot find dataset or path, please check and try again.")
         exit(1)
 
+    for xidx, text_train in enumerate(X_train):
+        if (type(text_train) is str) and (' ' in text_train):
+            X_train[xidx] = text_train.split(' ')
+    for xidx, text_test in enumerate(X_test):
+        if (type(text_test) is str) and (' ' in text_test):
+            X_test[xidx] = text_test.split(' ')
+
     for yidx, label_train in enumerate(y_train):
         if (type(label_train) is str) and (' ' in label_train):
             y_train[yidx] = label_train.split(' ')
