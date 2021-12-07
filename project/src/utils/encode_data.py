@@ -7,13 +7,14 @@ import sys
 import numpy as np
 from scipy.special import softmax
 from sklearn.decomposition import PCA
+from typing import List, Tuple
 
 # local imports
 from project.src.utils.leep_data import LabelledDataset, LeepWriter
 from project.src.utils.embeddings import load_embeddings, load_pooling_function
 
 
-def encode_dataset(dataset: LabelledDataset, args: argparse.Namespace) -> str:
+def encode_dataset(dataset: LabelledDataset, args: argparse.Namespace) -> Tuple[np.ndarray, np.ndarray]:
     # load embedding model
     embedding_model = load_embeddings(args.embedding_model, static=True)
     logging.info(f"Loaded {embedding_model}.")
@@ -77,20 +78,22 @@ def encode_dataset(dataset: LabelledDataset, args: argparse.Namespace) -> str:
         embeddings = pca_model.fit_transform(embeddings)
         source_labels = [f'dim{d}' for d in range(pca_model.n_components)]
 
+    return np.array(embeddings), np.array(labels)
+
     # apply softmax to embeddings
-    embeddings = softmax(embeddings, axis=1)
+    # embeddings = softmax(embeddings, axis=1)
 
     # set up output file
-    leep_file = os.path.join(os.getenv('OUTPUT_PATH'), args.output_file)
+    # leep_file = os.path.join(os.getenv('OUTPUT_PATH'), args.output_file)
 
-    logging.info(f"Writing LEEP output to '{leep_file}'...")
-    leep_output = LeepWriter(leep_file)
+    # logging.info(f"Writing LEEP output to '{leep_file}'...")
+    # leep_output = LeepWriter(leep_file)
     # write LEEP header
-    leep_output.write_header(source_labels, target_labels)
+    # leep_output.write_header(source_labels, target_labels)
     # write embeddings and labels
-    leep_output.write_instances(embeddings, labels)
+    # leep_output.write_instances(embeddings, labels)
     # close LEEP output file pointer
-    leep_output.close()
-    logging.info(f"Saved LEEP output for {embeddings.shape[0]} instances to '{leep_file}'.")
+    # leep_output.close()
+    # logging.info(f"Saved LEEP output for {embeddings.shape[0]} instances to '{leep_file}'.")
 
-    return leep_file
+    # return leep_file
