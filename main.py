@@ -42,7 +42,7 @@ def main(args: argparse.Namespace):
     score = logme.fit(embeddings, labels)
     logging.info(f"LogME: {score}")
     with open(f"results_{args.dataset}.txt", "a") as f:
-        f.write(f"{args.tokenizer} | {args.dataset} | LogME: {score}\n")
+        f.write(f"{args.embedding_model} | {args.dataset} | LogME: {score}\n")
 
 
 if __name__ == '__main__':
