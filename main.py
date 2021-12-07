@@ -4,10 +4,10 @@ import argparse
 import logging
 import sys
 
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 import numpy as np
 
-from project.src.preprocessing.tokenize import tokenize_text
+# from project.src.preprocessing.tokenize import tokenize_text
 from project.src.utils.leep_data import LabelledDataset
 from project.src.utils.encode_data import encode_dataset
 from project.src.utils.leep import LogExpectedEmpiricalPrediction
@@ -15,7 +15,7 @@ from project.src.utils.logme import LogME
 from project.src.utils.load_data import get_dataset
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
-load_dotenv(verbose=True)
+# load_dotenv(verbose=True)
 
 
 def main(args: argparse.Namespace):
@@ -23,7 +23,7 @@ def main(args: argparse.Namespace):
     X_train, y_train, _, _ = get_dataset(args)
 
     # tokenize text
-    logging.info("Tokenizing text...")
+    # logging.info("Tokenizing text...")
     # tokenized_text = tokenize_text(args, X_train)
 
     # create LabelledDataset object
