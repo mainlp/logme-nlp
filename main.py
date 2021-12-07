@@ -2,13 +2,16 @@
 
 import argparse
 import logging
+import sys
 
 from dotenv import load_dotenv
+import numpy as np
 
 from project.src.preprocessing.tokenize import tokenize_text
 from project.src.utils.leep_data import LabelledDataset
 from project.src.utils.encode_data import encode_dataset
 from project.src.utils.leep import LogExpectedEmpiricalPrediction
+from project.src.utils.logme import LogME
 from project.src.utils.load_data import get_dataset
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
@@ -28,10 +31,17 @@ def main(args: argparse.Namespace):
     logging.info(f"Loaded {dataset}.")
 
     # encode dataset
-    leep_filepath = encode_dataset(dataset, args)
+    embeddings, labels = encode_dataset(dataset, args)
+    # leep_filepath = encode_dataset(dataset, args)
 
-    leep = LogExpectedEmpiricalPrediction(leep_filepath)
-    logging.info(f"LEEP: {leep.compute_leep()}")
+    # leep = LogExpectedEmpiricalPrediction(leep_filepath)
+    # logging.info(f"LEEP: {leep.compute_leep()}")
+
+    logme = LogME(regression=False)
+    score = logme.fit(embeddings, labels)
+    logging.info(f"LogME: {score}")
+    with open(f"results_{args.dataset}.txt", "a") as f:
+        f.write(f"{args.tokenizer} | {args.dataset} | LogME: {score}\n")
 
 
 if __name__ == '__main__':
