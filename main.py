@@ -24,10 +24,11 @@ def main(args: argparse.Namespace):
 
     # tokenize text
     logging.info("Tokenizing text...")
-    tokenized_text = tokenize_text(args, X_train)
+    # tokenized_text = tokenize_text(args, X_train)
 
     # create LabelledDataset object
-    dataset = LabelledDataset(inputs=tokenized_text, labels=y_train)
+
+    dataset = LabelledDataset(inputs=X_train, labels=y_train)
     logging.info(f"Loaded {dataset}.")
 
     # encode dataset
