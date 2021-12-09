@@ -137,11 +137,10 @@ class NonContextualEmbeddings(Embeddings):
 
 
 class TransformerEmbeddings(Embeddings):
-	def __init__(self, lm_name, layer=-1, cls=False, static=True):
+	def __init__(self, lm_name, layer=-1, cls=False, tokenized=False, static=True):
 		super().__init__()
 		# load transformer
-		# self._tok = transformers.AutoTokenizer.from_pretrained(lm_name, use_fast=True, add_prefix_space=True)
-		self._tok = transformers.AutoTokenizer.from_pretrained(lm_name, use_fast=False, add_prefix_space=True)
+		self._tok = transformers.AutoTokenizer.from_pretrained(lm_name, use_fast=True, add_prefix_space=True)
 		self._lm = transformers.AutoModel.from_pretrained(lm_name, return_dict=True)
 		# move model to GPU if available
 		if torch.cuda.is_available():
@@ -153,6 +152,7 @@ class TransformerEmbeddings(Embeddings):
 		# internal variables
 		self._lm_layer = layer
 		self._cls = cls
+		self._tokenized = tokenized
 		self._static = static
 		# public variables
 		self.emb_dim = self._lm.config.hidden_size
@@ -181,24 +181,27 @@ class TransformerEmbeddings(Embeddings):
 		hidden_states = model_outputs.hidden_states  # tuple(num_layers * (batch_size, max_len, hidden_dim))
 		emb_pieces = hidden_states[self._lm_layer] # batch_size, max_len, hidden_dim
 
-		return emb_pieces, tok_sentences['attention_mask']
+		# if input is already tokenized, reduce WordPiece to words
+		if self._tokenized:
+			emb_words, att_words = self.reduce(sentences, tok_sentences, emb_pieces)
+			return emb_words, att_words
 
-		# # reduce WordPiece to words
-		# emb_words, att_words = self.reduce(sentences, tok_sentences, emb_pieces)
-		#
-		# return emb_words, att_words
+		# otherwise, return model-specific tokenization
+		return emb_pieces, tok_sentences['attention_mask']
 
 	def tokenize(self, sentences):
 		# tokenize batch: {input_ids: [[]], token_type_ids: [[]], attention_mask: [[]], special_tokens_mask: [[]]}
-		# tok_sentences = self._tok(
-		# 	sentences,
-		# 	is_split_into_words=True, padding=True, truncation=True,
-		# 	return_tensors='pt', return_special_tokens_mask=True, return_offsets_mapping=True
-		# )
-		tok_sentences = self._tok(
-			sentences,
-			padding=True, truncation=True, return_tensors='pt'
-		)
+		if self._tokenized:
+			tok_sentences = self._tok(
+				sentences,
+				is_split_into_words=True, padding=True, truncation=True,
+				return_tensors='pt', return_special_tokens_mask=True, return_offsets_mapping=True
+			)
+		else:
+			tok_sentences = self._tok(
+				sentences,
+				padding=True, truncation=True, return_tensors='pt'
+			)
 		# move input to GPU (if available)
 		if torch.cuda.is_available():
 			tok_sentences = {k: v.to(torch.device('cuda')) for k, v in tok_sentences.items()}
@@ -263,7 +266,12 @@ class TransformerEmbeddings(Embeddings):
 
 
 def get_mean_embedding(token_embeddings):
-	return np.mean(token_embeddings, axis=0)
+	if isinstance(token_embeddings, np.ndarray):
+		return np.mean(token_embeddings, axis=0)
+	elif isinstance(token_embeddings, torch.Tensor):
+		return torch.mean(token_embeddings, dim=0)
+	else:
+		raise ValueError(f"[Error] No mean-pooling operation defined for type {type(token_embeddings)}.")
 
 
 def get_first_embedding(token_embeddings):
