@@ -8,7 +8,7 @@ import sys
 import numpy as np
 
 # from project.src.preprocessing.tokenize import tokenize_text
-from project.src.utils.leep_data import LabelledDataset
+from project.src.utils.data import LabelledDataset
 from project.src.utils.encode_data import encode_dataset
 from project.src.utils.leep import LogExpectedEmpiricalPrediction
 from project.src.utils.logme import LogME
@@ -27,7 +27,6 @@ def main(args: argparse.Namespace):
     # tokenized_text = tokenize_text(args, X_train)
 
     # create LabelledDataset object
-
     dataset = LabelledDataset(inputs=X_train, labels=y_train)
     logging.info(f"Loaded {dataset}.")
 

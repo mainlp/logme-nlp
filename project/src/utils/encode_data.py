@@ -10,7 +10,7 @@ from sklearn.decomposition import PCA
 from typing import List, Tuple
 
 # local imports
-from project.src.utils.leep_data import LabelledDataset, LeepWriter
+from project.src.utils.data import LabelledDataset
 from project.src.utils.embeddings import load_embeddings, load_pooling_function
 
 

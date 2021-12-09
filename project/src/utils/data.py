@@ -47,7 +47,7 @@ class LabelledDataset:
             # yield batch
             yield inputs, labels
 
-    def get_shuffled_batches(self, batch_size, flatten_labels=False):
+    def get_shuffled_batches(self, batch_size):
         # start with list of all input indices
         remaining_idcs = list(range(len(self._inputs)))
         np.random.shuffle(remaining_idcs)
@@ -59,8 +59,10 @@ class LabelledDataset:
 
             # gather batch data
             inputs = [self._inputs[idx] for idx in batch_idcs]
-            if flatten_labels:
+            # flatten sequential labels if necessary
+            if type(self._labels[batch_idcs[0]]) is list:
                 labels = [l for idx in batch_idcs for l in self._labels[idx]]
+            # one label per input does not require flattening
             else:
                 labels = [self._labels[idx] for idx in batch_idcs]
             # yield batch + number of remaining instances
