@@ -40,8 +40,14 @@ def main(args: argparse.Namespace):
     logme = LogME(regression=False)
     score = logme.fit(embeddings, labels)
     logging.info(f"LogME: {score}")
-    with open(f"results_{args.dataset}.txt", "a") as f:
-        f.write(f"{args.embedding_model} | {args.dataset} | LogME: {score}\n")
+
+    if args.dataset:
+        dataset = args.dataset
+    else:
+        dataset = args.train_path.split("/")[-1]
+
+    with open(f"results_{dataset}.txt", "a") as f:
+        f.write(f"{args.embedding_model} | {dataset} | LogME: {score}\n")
 
 
 if __name__ == '__main__':
