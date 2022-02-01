@@ -282,7 +282,7 @@ def get_first_embedding(token_embeddings):
 #
 
 
-def load_embeddings(identifier, static=True):
+def load_embeddings(identifier, tokenized=False, static=True):
 	# embeddings from fasttext
 	if identifier.startswith('fasttext:'):
 		vector_file = identifier.split(':')[1]
@@ -295,12 +295,12 @@ def load_embeddings(identifier, static=True):
 	if identifier.startswith('transformer:'):
 		lm_name = identifier.split(':')[1]
 		transformers.logging.set_verbosity_error()
-		return TransformerEmbeddings(lm_name, static=static)
+		return TransformerEmbeddings(lm_name, tokenized=tokenized, static=static)
 	# embeddings + CLS-token from pre-trained transformer model
 	if identifier.startswith('transformer+cls:'):
 		lm_name = identifier.split(':')[1]
 		transformers.logging.set_verbosity_error()
-		return TransformerEmbeddings(lm_name, cls=True, static=static)
+		return TransformerEmbeddings(lm_name, cls=True, tokenized=tokenized, static=static)
 	else:
 		raise ValueError(f"[Error] Unknown embedding specification '{identifier}'.")
 
