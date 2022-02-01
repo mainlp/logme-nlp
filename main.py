@@ -6,15 +6,16 @@ import sys
 
 # from dotenv import load_dotenv
 import numpy as np
-
 # from project.src.preprocessing.tokenize import tokenize_text
 from project.src.utils.data import LabelledDataset
 from project.src.utils.encode_data import encode_dataset
 from project.src.utils.leep import LogExpectedEmpiricalPrediction
-from project.src.utils.logme import LogME
 from project.src.utils.load_data import get_dataset
+from project.src.utils.logme import LogME
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
+
+
 # load_dotenv(verbose=True)
 
 
@@ -47,7 +48,8 @@ if __name__ == '__main__':
 
     parser.add_argument('--dataset', type=str, nargs='?', help='Dataset from the HuggingFace Dataset library.')
     parser.add_argument('--task', choices=['sequence_classification', 'token_classification'],
-                        help='''Specify the type of task. Token classification requires pre-tokenized text and one label 
+                        help='''Specify the type of task. Token classification requires pre-tokenized text and one 
+                        label 
                         per token (both separated by space). Sequence classification requires pooling to reduce a 
                         sentence's token embeddings to one embedding per sentence.
                         ''')
