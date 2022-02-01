@@ -16,7 +16,11 @@ from project.src.utils.embeddings import load_embeddings, load_pooling_function
 
 def encode_dataset(dataset: LabelledDataset, args: argparse.Namespace) -> Tuple[np.ndarray, np.ndarray]:
     # load embedding model
-    embedding_model = load_embeddings(args.embedding_model, static=True)
+    embedding_model = load_embeddings(
+        args.embedding_model,
+        tokenized=(args.task == 'token_classification'),
+        static=True
+    )
     logging.info(f"Loaded {embedding_model}.")
 
     # initialize PCA
@@ -27,12 +31,12 @@ def encode_dataset(dataset: LabelledDataset, args: argparse.Namespace) -> Tuple[
             f"[Error] Not enough data to perform PCA ({len(dataset)} < {pca_model.n_components})."
         logging.info(f"Using PCA model with {pca_model.n_components} components.")
     # set pooling function for sentence labeling tasks
-    pooling_function = load_pooling_function(args.pooling)
-    logging.info(f"Using pooling function '{args.pooling}' (sentence classification only).")
-
-    # source labels are embedding dimensions
-    source_labels = [f'dim{d}' for d in range(embedding_model.emb_dim)]
-    target_labels = dataset.get_label_types()
+    if args.pooling:
+        pooling_function = load_pooling_function(args.pooling)
+        logging.info(f"Using pooling function '{args.pooling}' (sentence classification only).")
+    else:
+        pooling_function = lambda x: x # return identity
+        logging.info(f"Using all token-level embeddings (no pooling).")
 
     # set up output embedding and label stores
     embeddings = np.zeros((len(dataset), embedding_model.emb_dim))
@@ -79,21 +83,3 @@ def encode_dataset(dataset: LabelledDataset, args: argparse.Namespace) -> Tuple[
         source_labels = [f'dim{d}' for d in range(pca_model.n_components)]
 
     return np.array(embeddings), np.array(labels)
-
-    # apply softmax to embeddings
-    # embeddings = softmax(embeddings, axis=1)
-
-    # set up output file
-    # leep_file = os.path.join(os.getenv('OUTPUT_PATH'), args.output_file)
-
-    # logging.info(f"Writing LEEP output to '{leep_file}'...")
-    # leep_output = LeepWriter(leep_file)
-    # write LEEP header
-    # leep_output.write_header(source_labels, target_labels)
-    # write embeddings and labels
-    # leep_output.write_instances(embeddings, labels)
-    # close LEEP output file pointer
-    # leep_output.close()
-    # logging.info(f"Saved LEEP output for {embeddings.shape[0]} instances to '{leep_file}'.")
-
-    # return leep_file

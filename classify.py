@@ -20,6 +20,11 @@ def parse_arguments():
 	arg_parser.add_argument('--train_path', help='path to training data')
 	arg_parser.add_argument('--test_path', help='path to validation data')
 	arg_parser.add_argument('--dataset', help='name of HuggingFace dataset')
+	arg_parser.add_argument('--task', choices=['sequence_classification', 'token_classification'],
+		help='''Specify the type of task. Token classification requires pre-tokenized text and one label 
+		per token (both separated by space). Sequence classification requires pooling to reduce a 
+		sentence's token embeddings to one embedding per sentence.
+		''')
 	arg_parser.add_argument('--text_column', default='text', help='column containing input features')
 	arg_parser.add_argument('--label_column', default='label', help='column containing gold labels')
 	# embedding model setup
@@ -149,7 +154,11 @@ def main():
 	label_types = sorted(set(train_data.get_label_types()) | set(valid_data.get_label_types()))
 
 	# load embedding model
-	embedding_model = load_embeddings(args.embedding_model, static=(not args.embedding_tuning))
+	embedding_model = load_embeddings(
+		args.embedding_model,
+		tokenized=(args.task == 'token_classification'),
+		static=(not args.embedding_tuning)
+	)
 	logging.info(f"Loaded {embedding_model}.")
 
 	# load pooling function for sentence labeling tasks
