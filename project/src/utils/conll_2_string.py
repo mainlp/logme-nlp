@@ -1,32 +1,34 @@
 import argparse
 import json
+import csv
 
 def bio_to_csv(inputfile, outputfile, labelsfile):
 
     with open(labelsfile) as file:
         label_dict = json.load(file)
 
-    output = open(outputfile, 'w')
-    output.write(f'"text","label"\n')
-
     with open(inputfile) as input:
-
-        tokens, labels = '', ''
+        tokens, labels = [], []
+        instance_tokens, instance_labels = '', ''
 
         for line in input:
             if line != '\n':
                 t = line.strip().split('\t')[0]
-                tokens += f' {t}'
+                instance_tokens += f' {t}'
                 l = line.strip().split('\t')[1]
-                labels += f' {label_dict[l]}'
+                instance_labels += f' {label_dict[l]}'
             else:
-                tokens = '"' + tokens.strip() + '"'
-                labels = '"' + labels.strip() + '"'
-                output.write(f'{tokens},{labels}\n')
-                tokens, labels = '', ''
+                tokens.append(instance_tokens.strip())
+                labels.append(instance_labels.strip())
+                instance_tokens, instance_labels = '', ''
+        tokens.append(instance_tokens.strip())
+        labels.append(instance_labels.strip())
 
-    output.close()
-
+    with open(outputfile, 'w', encoding='utf8', newline='') as output:
+        csv_writer = csv.writer(output, quoting=csv.QUOTE_ALL)
+        csv_writer.writerow(['text', 'label'])
+        for t, l in zip(tokens, labels):
+            csv_writer.writerow([t, l])
 
 if __name__ == '__main__':
 
