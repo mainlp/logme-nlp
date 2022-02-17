@@ -1,3 +1,4 @@
+import csv
 import json
 import re
 
@@ -67,6 +68,16 @@ class LabelledDataset:
                 labels = [self._labels[idx] for idx in batch_idcs]
             # yield batch + number of remaining instances
             yield inputs, labels, len(remaining_idcs)
+
+    def save(self, path):
+        with open(path, 'w', encoding='utf8', newline='') as output_file:
+            csv_writer = csv.writer(output_file, quoting=csv.QUOTE_ALL)
+            csv_writer.writerow(['text', 'label'])
+            for idx, text in enumerate(self._inputs):
+                label = self._labels[idx]
+                if type(label) is list:
+                    label = ' '.join([str(l) for l in label])
+                csv_writer.writerow([text, label])
 
     @staticmethod
     def from_path(path):

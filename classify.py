@@ -37,6 +37,8 @@ def parse_arguments():
 
     # classifier setup
     arg_parser.add_argument('--classifier', required=True, help='classifier identifier')
+    arg_parser.add_argument('-po', '--prediction_only', action='store_true', default=False,
+                            help='set flag to run prediction on the validation data and exit (default: False)')
 
     # experiment setup
     arg_parser.add_argument('--exp_path', required=True, help='path to experiment directory')
@@ -51,19 +53,25 @@ def parse_arguments():
     return arg_parser.parse_args()
 
 
-def setup_experiment(out_path):
-    if os.path.exists(out_path):
-        response = None
-
-        while response not in ['y', 'n']:
-            response = input(f"Path '{out_path}' already exists. Overwrite? [y/n] ")
-        if response == 'n':
+def setup_experiment(out_path, prediction=False):
+    if not os.path.exists(out_path):
+        if prediction:
+            print(f"Experiment path '{out_path}' does not exist. Cannot run prediction. Exiting.")
             exit(1)
 
-    # if output dir does not exist, create it
-    else:
+        # if output dir does not exist, create it (new experiment)
         print(f"Path '{out_path}' does not exist. Creating...")
         os.mkdir(out_path)
+    # if output dir exist, check if predicting
+    else:
+        # if not predicting, verify overwrite
+        if not prediction:
+            response = None
+
+            while response not in ['y', 'n']:
+                response = input(f"Path '{out_path}' already exists. Overwrite? [y/n] ")
+            if response == 'n':
+                exit(1)
 
     # setup logging
     log_format = '%(message)s'
@@ -74,7 +82,7 @@ def setup_experiment(out_path):
     logger.addHandler(logging.StreamHandler(sys.stdout))
 
 
-def run(classifier, criterion, optimizer, dataset, batch_size, mode='train'):
+def run(classifier, criterion, optimizer, dataset, batch_size, mode='train', return_predictions=False):
     stats = defaultdict(list)
 
     # set model to training mode
@@ -117,6 +125,14 @@ def run(classifier, criterion, optimizer, dataset, batch_size, mode='train'):
         stats['loss'].append(float(loss.detach()))
         stats['accuracy'].append(float(accuracy))
 
+        # store predictions
+        if return_predictions:
+            # iterate over inputs items
+            for sidx in range(predictions['labels'].shape[0]):
+                # append non-padding predictions as list
+                predicted_labels = predictions['labels'][sidx]
+                stats['predictions'].append(predicted_labels[predicted_labels != -1].tolist())
+
         # print batch statistics
         pct_complete = (1 - (num_remaining / len(dataset._inputs))) * 100
         sys.stdout.write(
@@ -135,7 +151,9 @@ def main():
     args = parse_arguments()
 
     # setup experiment directory and logging
-    setup_experiment(args.exp_path)
+    setup_experiment(args.exp_path, prediction=args.prediction_only)
+
+    if args.prediction_only: logging.info(f"Running in prediction mode (no training).")
 
     # set random seeds
     np.random.seed(args.seed)
@@ -177,10 +195,40 @@ def main():
             classes=label_types
             )
     logging.info(f"Using classifier:\n{classifier}")
+    # load pre-trained model for prediction
+    if args.prediction_only:
+        classifier_path = os.path.join(args.exp_path, 'best.pt')
+        if not os.path.exists(classifier_path):
+            logging.error(f"[Error] No pre-trained model available in '{classifier_path}'. Exiting.")
+            exit(1)
+        classifier = classifier_constructor.load(
+            classifier_path, classes=label_types,
+            emb_model=embedding_model, emb_pooling=pooling_function, emb_tuning=args.embedding_tuning
+        )
+        logging.info(f"Loaded pre-trained classifier from '{classifier_path}'.")
 
     # setup loss
     criterion = loss_constructor(label_types)
     logging.info(f"Using criterion {criterion}.")
+
+    # main prediction call (when only predicting on validation data w/o training)
+    if args.prediction_only:
+        stats = run(
+            classifier, criterion, None, valid_data,
+            args.batch_size, mode='eval', return_predictions=True
+        )
+        # convert label indices back to string labels
+        idx_lbl_map = {idx: lbl for idx, lbl in enumerate(label_types)}
+        pred_labels = [
+            [idx_lbl_map[p] for p in preds]
+            for preds in stats['predictions']
+        ]
+        pred_data = LabelledDataset(valid_data._inputs, pred_labels)
+        pred_path = os.path.join(args.exp_path, f'{os.path.splitext(os.path.basename(args.test_path))[0]}-pred.csv')
+        pred_data.save(pred_path)
+        logging.info(f"Prediction completed with Acc: {np.mean(stats['accuracy']):.4f}, Loss: {np.mean(stats['loss']):.4f} (mean over batches).")
+        logging.info(f"Saved results from {pred_data} to '{pred_path}'. Exiting.")
+        exit()
 
     # setup optimizer
     optimizer = torch.optim.AdamW(params=classifier.get_trainable_parameters(), lr=args.learning_rate)
