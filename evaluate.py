@@ -5,8 +5,6 @@ import csv
 import json
 import logging
 import os
-import sys
-from collections import defaultdict
 
 from sklearn.metrics import f1_score
 
@@ -50,8 +48,6 @@ def get_span_f1(gold_path: str, predicted_path: str) -> dict:
             result[17]: result[18],
             }
 
-    logging.info(f"Results on X: {results_dict}")
-
     return results_dict
 
 
@@ -63,8 +59,8 @@ def get_f1(gold_path: str, predicted_path: str) -> dict:
         gold_reader = csv.reader(gold_fp, delimiter=',')
         pred_reader = csv.reader(pred_fp, delimiter=',')
         for gold_line, pred_line in zip(gold_reader, pred_reader):
-            gold.extend(gold_line[1])
-            pred.extend(pred_line[1])
+            gold.extend(gold_line[1].split(' '))
+            pred.extend(pred_line[1].split(' '))
 
     assert len(gold) == len(pred), "Length of gold and predicted labels should be equal."
 
@@ -75,18 +71,20 @@ def get_f1(gold_path: str, predicted_path: str) -> dict:
 
 def main(args: argparse.Namespace):
     logging.info(f"Evaluating {args.gold_path} and {args.pred_path}.")
-    exp = pred_path.split(".")[0]
+    exp = os.path.splitext(os.path.basename(args.pred_path))[0]
 
     if args.gold_path.endswith("conll") and args.pred_path.endswith("conll"):
-        metrics = get_span_f1(args.gold_path, pred_path)
+        metrics = get_span_f1(args.gold_path, args.pred_path)
     elif args.gold_path.endswith("csv") and args.pred_path.endswith("csv"):
-        metrics = get_f1(args.gold_path, pred_path)
+        metrics = get_f1(args.gold_path, args.pred_path)
     else:
         logging.info(f"File type is not supported, only (CSV or CONLL).")
         exit(1)
 
     logging.info(f"Saving scores to {args.out_path}")
-    json.dump(metrics, open(f"{args.out_path}/{exp}_results.json", "w"))
+    json.dump(metrics, open(f"{os.path.join(args.out_path, exp)}-results.json", "w"))
+
+    logging.info(json.dumps(metrics, indent=4, sort_keys=True))
 
 
 if __name__ == '__main__':
