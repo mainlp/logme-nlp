@@ -42,10 +42,10 @@ def get_span_f1(gold_path: str, predicted_path: str) -> dict:
 
     result = out.split()
     results_dict = {
-            result[11]: result[12][:-2],
-            result[13]: result[14][:-2],
-            result[15]: result[16][:-2],
-            result[17]: result[18],
+            result[11]: float(result[12][:-2]),
+            result[13]: float(result[14][:-2]),
+            result[15]: float(result[16][:-2]),
+            result[17]: float(result[18]),
             }
 
     return results_dict
