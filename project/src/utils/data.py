@@ -78,9 +78,9 @@ class LabelledDataset:
             csv_writer = csv.writer(output_file, quoting=csv.QUOTE_ALL)
             csv_writer.writerow(['text', 'label'])
             for idx, text in enumerate(self._inputs):
-                text = ' '.join(text)
                 label = self._labels[idx]
                 if type(label) is list:
+                    text = ' '.join(text)
                     label = ' '.join([str(l) for l in label])
                 csv_writer.writerow([text, label])
 
