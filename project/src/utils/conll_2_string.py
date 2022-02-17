@@ -21,8 +21,9 @@ def bio_to_csv(inputfile, outputfile, labelsfile):
                 tokens.append(instance_tokens.strip())
                 labels.append(instance_labels.strip())
                 instance_tokens, instance_labels = '', ''
-        tokens.append(instance_tokens.strip())
-        labels.append(instance_labels.strip())
+        if instance_tokens != "" and instance_labels != "":
+            tokens.append(instance_tokens.strip())
+            labels.append(instance_labels.strip())
 
     with open(outputfile, 'w', encoding='utf8', newline='') as output:
         csv_writer = csv.writer(output, quoting=csv.QUOTE_ALL)
