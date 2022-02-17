@@ -76,7 +76,7 @@ def setup_experiment(out_path, prediction=False):
     # setup logging
     log_format = '%(message)s'
     log_level = logging.INFO
-    logging.basicConfig(filename=os.path.join(out_path, 'classify.log'), filemode='w', format=log_format,
+    logging.basicConfig(filename=os.path.join(out_path, 'classify.log'), filemode='a', format=log_format,
                         level=log_level)
     logger = logging.getLogger()
     logger.addHandler(logging.StreamHandler(sys.stdout))
