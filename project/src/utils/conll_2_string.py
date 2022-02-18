@@ -2,8 +2,8 @@ import argparse
 import json
 import csv
 
-def bio_to_csv(inputfile, outputfile, labelsfile):
 
+def bio_to_csv(inputfile, outputfile, labelsfile):
     with open(labelsfile) as file:
         label_dict = json.load(file)
 
@@ -31,8 +31,8 @@ def bio_to_csv(inputfile, outputfile, labelsfile):
         for t, l in zip(tokens, labels):
             csv_writer.writerow([t, l])
 
-if __name__ == '__main__':
 
+if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Convert data from bio format to csv format.")
     parser.add_argument("--input", help="Input file in the conll format.")
     parser.add_argument("--output", help="Output file in the csv HuggingFace format.")
