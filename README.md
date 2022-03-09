@@ -1,111 +1,167 @@
-# LEEP
-Implementation of LEEP: A New Measure to Evaluate Transferability of Learned Representations: http://proceedings.mlr.press/v119/nguyen20b/nguyen20b.pdf 
+# LogME Framework
+
+## *Under construction*
+
+Code for Transferability Estimation for Task-adaptive Transfer Learning.
+
+The Logarithm of Maximum Evidence (LogME) can be used to assess pre-trained models for transfer learning: a pre-trained 
+model with a high LogME value is likely to have good transfer performance
+(<a href="http://proceedings.mlr.press/v139/you21b/you21b.pdf">You et al., 2021</a>).
+
+## Project Structure
+```
+project
+├── resources (run setup.sh)
+│   ├── data (run setup.sh)
+│   │   └── *
+│   ├── output (run setup.sh)
+│   │   └── * 
+├── src
+│   ├── classification
+│   │   ├── __init__.py
+│   │   ├── classifiers.py
+│   │   └── losses.py
+│   ├── preprocessing
+│   │   └── tokenize.py
+│   ├── utils
+│   │   ├── conll_2_string.py
+│   │   ├── string_2_conll.py
+│   │   ├── conlleval.perl
+│   │   ├── data.py
+│   │   ├── embeddings.py
+│   │   ├── encode_data.py
+│   │   ├── leep.py (deprecated)
+│   │   ├── load_data.py
+│   │   └── logme.py
+├── tasks
+│   ├── deprel
+│   │   ├── convert_ud.py
+│   │   ├── run_classification.sh
+│   │   └── run_logme.sh
+│   ├── sentiment
+│   │   ├── convert_airline.py
+│   │   ├── run_classification.sh
+│   │   └── run_logme.sh
+├── .gitignore
+├── classify.py
+├── evaluate.py
+├── main.py
+├── README.md
+├── requirements.txt
+└── setup.sh
+```
 
 ## Requirements
-
 ```
-pip3 install --user -r requirements.txt
+numpy
+scipy
+sklearn
+torch
+transformers
+datasets
+numba
 ```
-
-## Setup
-Run `sh setup.sh` to create the right directory paths.
-
-## Calculating LEEP
-
-The class expects a path to a `.txt` file consisting of the following:
-```
-# <unique gold labels target dataset>
-# <unique gold labels source dataset>
-<output probabilities of pretrained model of source set Z applied on target set Y> <gold label instance from Y>
-```
-For example, this is in your `output.txt` file:
-```
-# [A, B, C, D]
-# [U, V, W, X, Y, Z]
-[0.00342972157523036, 0.03722788393497467, 1.3426588907350379e-07, 0.8358138203620911, 0.007074566558003426, 0.11645391583442688] A
-...
-```
-To run the script:
-
 ```bash
-python leep.py output.txt
-# returns e.g. -8.695098322753905
+pip install --user -r requirements.txt
 ```
 
-## Embedding LEEP
+#### Setup
+Run `bash setup.sh` to create the appropriate directory paths.
 
-The `emblem.py` script can be used to generate a LEEP-ready file which will have the desired target label set and pre-trained embeddings as the source labels (i.e. embedding feature dimensions are treated as classes). It supports the following encoding schemes:
+## Usages
+There are three scripts to use:
+```python
+main.py
+classify.py
+evaluate.py
 
-* fasttext
-* GloVe
-* HuggingFace Transformers
-
-### Input Format
-
-Convert your  target dataset into the following format for token-wise classification tasks:
-
+# check usage by e.g.
+python main.py -h
 ```
-["token0", "token1", ..., "tokenN"] ["label0", "label0", ..., "labelN"]
-["token0", ..., "tokenM"] ["label0", ..., "labelM"]
+
+## Data
+
+To run **LogME** on your data. The data needs to be pre-tokenized in a **.csv** format, where the labels must be 
+converted to 
+unique 
+integers:
+
+#### Sequence Classification
+```csv
+"text","label"
+"this is a sentence , to test .","0"
 ...
 ```
 
-Use the following format for sentence-wise classification tasks:
-
-```
-["token0", "token1", ..., "tokenN"] "label0"
-["token0", ..., "tokenM"] "label1"
+#### Sequence Labeling
+```csv
+"text","label"
+"this is New York .","0 0 1 2 0"
 ...
 ```
 
-### Generating Embeddings
+If your dataset is available in <a href=https://huggingface.co/datasets>HuggingFace Datasets</a> you can use the 
+name of the dataset in `main.py`.
 
-After the input file is in the above format, the `embleep.py` script can be used to generate embeddings for the input dataset:
+## Examples
+For detailed example scripts check `project/tasks/*`.
 
+### 1. Calculate LogME
 ```bash
-python embleep.py input.txt output.txt embedding_model \
-	--pooling strategy \
-	--batch_size batch_size
+#!/bin/bash
+
+# path to your data
+DATA_PATH=~/project/resources/data/airline
+# the type of embedding to calculate LogME on (e.g., [cls]-token or the mean of subwords) 
+# [transformer, transformer+cls]
+EMB_TYPE="transformer+cls"
+# your favourite encoders to vectorize your data with.
+ENCODERS=( "bert-base-uncased" 
+           "roberta-base"
+           "distilbert-base-uncased" 
+           "emilyalsentzer/Bio_ClinicalBERT" 
+           "dmis-lab/biobert-v1.1" 
+           "cardiffnlp/twitter-roberta-base" 
+           "allenai/scibert_scivocab_uncased" )
+# use POOLING="first" if you calculate LogME over the [cls] token, otherwise "mean" is default.
+POOLING="first"
+
+# prepare and split data
+python convert_airline.py $DATA_PATH/Tweets.csv $DATA_PATH/notok -rs 4012
+
+# iterate over encoders
+for enc_idx in "${!ENCODERS[@]}"; do
+  echo "Computing LogME using embeddings from '${ENCODERS[$enc_idx]}'"
+  # compute embeddings and LogME
+  python main.py \
+    # sequence_classification OR sequence_labeling
+    --task "sequence_classification" \
+    --train_path $DATA_PATH/notok-train.csv \
+    --test_path $DATA_PATH/notok-test.csv \
+    # column headers in your .csv file
+    --text_column text --label_column label \
+    --embedding_model ${EMB_TYPE}:${ENCODERS[$enc_idx]} \
+    --pooling ${POOLING} | tee run_logme_cls.log
+done
 ```
 
-Specify an embedding models using the syntax `model_type:arguments`. Embedding representations for sentences must be pooled from token-level embeddings. As such, please also specify a pooling strategy from among `mean` (mean-pool all tokens in the sentence), `first` (use the first embedding, e.g. [CLS] token).
+### 2. Model fine-tuning
 
+### 3. Evaluation
 ```bash
-# fasttext
-python embleep.py input.txt output.txt \
-	"fasttext:/path/to/fasttext.vec" \
-	--pooling mean
-# GloVe
-python embleep.py input.txt output.txt \
-	"glove:/path/to/glove.vec" \
-	--pooling mean
-# Transformer Language Model
-python embleep.py input.txt output.txt \
-	"transformer:model_name" \
-	--pooling mean
-# Transformer Language Model (CLS)
-python embleep.py input.txt output.txt \
-	"transformer+cls:model_name" \
-	--pooling first
+# path to your data
+DATA_PATH=~/project/resources/data/jobstack
+EXP_DIR=~/project/resources/output/jobstack
+
+# convert predictions to conll if you do sequence labeling and you have data in conll format
+python project/src/utils/string_2_conll.py \
+  --input ${EXP_DIR}/jobstack-predictions.csv \
+  --output ${EXP_DIR}/jobstack-predictions.conll \
+  --labels ${DATA_PATH}/labels.json \
+
+# run evaluation, in this example on dev.
+python evaluate.py \
+  --gold_path ${DATA_PATH}/dev-jobstack.conll \
+  --pred_path ${EXP_DIR}/jobstack-predictions.conll \
+  --out_path ${EXP_DIR}
 ```
-
-The output file follows the format:
-
-```
-# ["class0", "class1", ... "classN"]
-# ["dim0", "dim1", ..., "dimD"]
-[0.0629, 0.0029, ..., probD] "label0"
-...
-```
-
-It can be supplied to the `leep.py` script to obtain the LEEP score.
-
-### Applying PCA
-
-In order to normalize embeddings of different dimensionalities, larger embeddings can be reduced to their N principal components using Principal Component Analysis (PCA). This is disabled by default and can be enabled by using the `-pca` flag:
-
-```bash
-python embleep.py input.txt output.txt embedding_model \
-	-pca num_components
-```
-

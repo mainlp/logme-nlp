@@ -1,6 +1,6 @@
 import csv
 import json
-import re
+import sys
 
 import numpy as np
 
@@ -42,11 +42,15 @@ class LabelledDataset:
             start_idx = cursor
             end_idx = min(start_idx + batch_size, len(self._inputs))
             cursor = end_idx
+            num_remaining = len(self._inputs) - cursor - 1
             # slice data
             inputs = self._inputs[start_idx:end_idx]
             labels = self._labels[start_idx:end_idx]
+            # flatten sequential labels if necessary
+            if type(labels[0]) is list:
+                labels = [l for seq in labels for l in seq]
             # yield batch
-            yield inputs, labels
+            yield inputs, labels, num_remaining
 
     def get_shuffled_batches(self, batch_size):
         # start with list of all input indices
@@ -76,33 +80,30 @@ class LabelledDataset:
             for idx, text in enumerate(self._inputs):
                 label = self._labels[idx]
                 if type(label) is list:
+                    text = ' '.join(text)
                     label = ' '.join([str(l) for l in label])
                 csv_writer.writerow([text, label])
 
     @staticmethod
     def from_path(path):
         inputs, labels = [], []
-        instance_pattern = re.compile(
-                r'^(?P<inputs>\[.+?\])\s(?P<labels>".+?"|\[.+?\])'
-                )
-        with open(path, 'r', encoding='utf8') as fp:
-            for lidx, line in enumerate(fp):
-                line = line.strip()
-                instance_match = instance_pattern.match(line)
-                # check: skip lines with non-conforming format
-                if instance_match is None:
-                    raise ValueError(
-                            f"[Error] Line {lidx} of '{path}' does not follow the dataset specification format.")
-                # parse input sequences and labels
-                instance_inputs = json.loads(instance_match['inputs'])
-                instance_labels = json.loads(instance_match['labels'])
-                # check: input has one label or the same number of labels as sequence items
-                if (type(instance_labels) is list) and (len(instance_inputs) != len(instance_labels)):
-                    raise ValueError(
-                            f"[Error] Line {lidx} of '{path}' has an unequal number of sequence items and labels.")
+        label_level = 'sequence'
+        with open(path, 'r', encoding='utf8', newline='') as fp:
+            csv.field_size_limit(sys.maxsize)
+            csv_reader = csv.DictReader(fp)
+            for row in csv_reader:
+                # convert all previous labels to token-level when encountering the first token-level label set
+                if (' ' in row['label']) and (label_level != 'token'):
+                    labels = [[l] for l in labels]
+                    label_level = 'token'
+                # covert current label(s) into appropriate form
+                if label_level == 'token':
+                    label = row['label'].split(' ')
+                else:
+                    label = row['label']
                 # append inputs and labels to overall dataset
-                inputs.append(instance_inputs)
-                labels.append(instance_labels)
+                inputs.append(row['text'])
+                labels.append(label)
 
         return LabelledDataset(inputs, labels)
 

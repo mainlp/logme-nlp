@@ -77,7 +77,7 @@ def setup_experiment(out_path, prediction=False):
     # setup logging
     log_format = '%(message)s'
     log_level = logging.INFO
-    logging.basicConfig(filename=os.path.join(out_path, 'classify.log'), filemode='w', format=log_format,
+    logging.basicConfig(filename=os.path.join(out_path, 'classify.log'), filemode='a', format=log_format,
                         level=log_level)
     logger = logging.getLogger()
     logger.addHandler(logging.StreamHandler(sys.stdout))
@@ -89,12 +89,14 @@ def run(classifier, criterion, optimizer, dataset, batch_size, mode='train', ret
     # set model to training mode
     if mode == 'train':
         classifier.train()
+        batch_generator = dataset.get_shuffled_batches
     # set model to eval mode
     elif mode == 'eval':
         classifier.eval()
+        batch_generator = dataset.get_batches
 
     # iterate over batches
-    for bidx, batch_data in enumerate(dataset.get_shuffled_batches(batch_size)):
+    for bidx, batch_data in enumerate(batch_generator(batch_size)):
         # set up batch data
         sentences, labels, num_remaining = batch_data
 
