@@ -137,11 +137,17 @@ class NonContextualEmbeddings(Embeddings):
 
 
 class TransformerEmbeddings(Embeddings):
-	def __init__(self, lm_name, layer=-1, cls=False, tokenized=False, static=True):
+	def __init__(self, lm_name, layer=-1, cls=False, tokenized=False, static=True, special_tokens=None):
 		super().__init__()
 		# load transformer
 		self._tok = transformers.AutoTokenizer.from_pretrained(lm_name, use_fast=True, add_prefix_space=True)
 		self._lm = transformers.AutoModel.from_pretrained(lm_name, return_dict=True)
+
+		# add special tokens
+		if special_tokens is not None:
+			self._tok.add_special_tokens({'additional_special_tokens': special_tokens})
+			self._lm.resize_token_embeddings(len(self._tok))
+
 		# move model to GPU if available
 		if torch.cuda.is_available():
 			self._lm.to(torch.device('cuda'))
@@ -282,7 +288,7 @@ def get_first_embedding(token_embeddings):
 #
 
 
-def load_embeddings(identifier, tokenized=False, static=True):
+def load_embeddings(identifier, tokenized=False, static=True, special_tokens=None):
 	# embeddings from fasttext
 	if identifier.startswith('fasttext:'):
 		vector_file = identifier.split(':')[1]
@@ -295,12 +301,12 @@ def load_embeddings(identifier, tokenized=False, static=True):
 	if identifier.startswith('transformer:'):
 		lm_name = identifier.split(':')[1]
 		transformers.logging.set_verbosity_error()
-		return TransformerEmbeddings(lm_name, tokenized=tokenized, static=static)
+		return TransformerEmbeddings(lm_name, tokenized=tokenized, static=static, special_tokens=special_tokens)
 	# embeddings + CLS-token from pre-trained transformer model
 	if identifier.startswith('transformer+cls:'):
 		lm_name = identifier.split(':')[1]
 		transformers.logging.set_verbosity_error()
-		return TransformerEmbeddings(lm_name, cls=True, tokenized=tokenized, static=static)
+		return TransformerEmbeddings(lm_name, cls=True, tokenized=tokenized, static=static, special_tokens=special_tokens)
 	else:
 		raise ValueError(f"[Error] Unknown embedding specification '{identifier}'.")
 
