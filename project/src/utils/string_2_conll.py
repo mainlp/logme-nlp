@@ -2,6 +2,7 @@ import argparse
 import json
 import csv
 
+
 def csv_to_bio(inputfile, outputfile, dict_labels):
 
     output = open(outputfile, 'w')
@@ -14,6 +15,7 @@ def csv_to_bio(inputfile, outputfile, dict_labels):
             labels = row[1].split(' ')
             for token, label in zip(tokens, labels):
                 output.write(f'{token}\t{dict_labels[int(label)]}\n')
+            output.write('\n')
 
     output.close()
 
@@ -25,8 +27,8 @@ def revert_dict(labelsfile):
         old_labels = json.loads(line)
     reverted_labels = {id:label for label, id in old_labels.items()}
 
-
     return reverted_labels
+
 
 if __name__ == '__main__':
 

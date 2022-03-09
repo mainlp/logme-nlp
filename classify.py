@@ -26,6 +26,7 @@ def parse_arguments():
                             help='''Specify the type of task. Token classification requires pre-tokenized text and 
                             one label per token (both separated by space). Sequence classification requires pooling 
                             to reduce a sentence's token embeddings to one embedding per sentence.''')
+    arg_parser.add_argument('-st', '--special_tokens', nargs='*', help='special tokens list')
     arg_parser.add_argument('--text_column', default='text', help='column containing input features')
     arg_parser.add_argument('--label_column', default='label', help='column containing gold labels')
 
@@ -179,7 +180,8 @@ def main():
     embedding_model = load_embeddings(
             args.embedding_model,
             tokenized=(args.task == 'token_classification'),
-            static=(not args.embedding_tuning)
+            static=(not args.embedding_tuning),
+            special_tokens=args.special_tokens
             )
     logging.info(f"Loaded {embedding_model}.")
 
