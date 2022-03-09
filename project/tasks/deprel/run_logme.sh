@@ -9,7 +9,7 @@ ENCODERS=( "bert-base-uncased" "roberta-base" "distilbert-base-uncased" "emilyal
 for enc_idx in "${!ENCODERS[@]}"; do
   echo "Computing LogME using embeddings from '${ENCODERS[$enc_idx]}'"
   # compute embeddings and LogME
-  python ../../main.py \
+  python main.py \
     --task "token_classification" \
     --train_path $DATA_PATH/${TREEBANK}-train.csv \
     --test_path $DATA_PATH/${TREEBANK}-test.csv \

@@ -158,8 +158,9 @@ def main():
     if args.prediction_only: logging.info(f"Running in prediction mode (no training).")
 
     # set random seeds
-    np.random.seed(args.seed)
-    torch.random.manual_seed(args.seed)
+    if args.seed is not None:
+        np.random.seed(args.seed)
+        torch.random.manual_seed(args.seed)
 
     # TODO HuggingFace Datasets integration
     train_sentences, train_labels, valid_sentences, valid_labels = get_dataset(args)

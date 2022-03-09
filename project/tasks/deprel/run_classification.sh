@@ -22,7 +22,7 @@ for rsd_idx in "${!SEEDS[@]}"; do
     else
       echo "Training ${CLASSIFIER}-classifier using '${ENCODERS[$enc_idx]}' and random seed ${SEEDS[$rsd_idx]}."
       # train classifier
-      python ../../classify.py \
+      python classify.py \
         --task "token_classification" \
         --train_path $DATA_PATH/en-ewt-train.csv \
         --test_path $DATA_PATH/en-ewt-dev.csv \
@@ -41,7 +41,7 @@ for rsd_idx in "${!SEEDS[@]}"; do
     # if no prediction is available, run inference
     else
       # run prediction
-      python ../../classify.py \
+      python classify.py \
         --task "token_classification" \
         --train_path $DATA_PATH/en-ewt-train.csv \
         --test_path $DATA_PATH/en-ewt-dev.csv \
@@ -53,7 +53,7 @@ for rsd_idx in "${!SEEDS[@]}"; do
     fi
 
     # run evaluation
-    python ../../evaluate.py \
+    python evaluate.py \
       --gold_path ${DATA_PATH}/en-ewt-dev.csv \
       --pred_path ${exp_dir}/en-ewt-dev-pred.csv \
       --out_path ${exp_dir}

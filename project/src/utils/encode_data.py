@@ -44,7 +44,7 @@ def encode_dataset(dataset: LabelledDataset, args: argparse.Namespace) -> Tuple[
 
     # iterate over batches
     eidx = 0
-    for bidx, (inputs, cur_labels) in enumerate(dataset.get_batches(args.batch_size)):
+    for bidx, (inputs, cur_labels, num_remaining) in enumerate(dataset.get_batches(args.batch_size)):
         # compute embeddings
         cur_embeddings = embedding_model.embed(inputs)  # list of numpy arrays with dim=(emb_dim, )
 

@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 import transformers
 
+
 #
 # Embeddings Base Class
 #
@@ -29,6 +30,7 @@ class Embeddings(nn.Module):
 			[np.Array(sen_len, emb_dim), ...]
 		"""
 		raise NotImplementedError
+
 
 #
 # fasttext embedding model
@@ -104,7 +106,7 @@ class NonContextualEmbeddings(Embeddings):
 			embeddings.append(embedding)
 
 			# print progress
-			if eidx%1000 == 0:
+			if eidx % 1000 == 0:
 				sys.stdout.write(f"\r[Emb {eidx}] Loading embeddings...")
 				sys.stdout.flush()
 		print("\r", end='')
@@ -131,6 +133,7 @@ class NonContextualEmbeddings(Embeddings):
 		# construct class
 		return NonContextualEmbeddings(word2id, embeddings, 'UNK', 'PAD', static)
 
+
 #
 # HuggingFace-based Embedding Model
 #
@@ -139,9 +142,18 @@ class NonContextualEmbeddings(Embeddings):
 class TransformerEmbeddings(Embeddings):
 	def __init__(self, lm_name, layer=-1, cls=False, tokenized=False, static=True):
 		super().__init__()
-		# load transformer
+		# load tokenizer
 		self._tok = transformers.AutoTokenizer.from_pretrained(lm_name, use_fast=True, add_prefix_space=True)
+		# load language model
 		self._lm = transformers.AutoModel.from_pretrained(lm_name, return_dict=True)
+		# sanity check: some models do not have a maximum input length
+		if self._tok.model_max_length != self._lm.config.max_position_embeddings:
+			max_length = self._lm.config.max_position_embeddings - 2  # 2 shorter for buffer (e.g. RoBERTa)
+			print(
+				f"[Warning] Maximum tokenizer input length does not match language model. "
+				f"Correcting {self._tok.model_max_length} to {max_length}."
+			)
+			self._tok.model_max_length = max_length
 		# move model to GPU if available
 		if torch.cuda.is_available():
 			self._lm.to(torch.device('cuda'))
@@ -167,7 +179,8 @@ class TransformerEmbeddings(Embeddings):
 
 	def forward(self, sentences):
 		tok_sentences = self.tokenize(sentences)
-		model_inputs = {k: tok_sentences[k] for k in ['input_ids', 'token_type_ids', 'attention_mask'] if k in tok_sentences}
+		model_inputs = {k: tok_sentences[k] for k in ['input_ids', 'token_type_ids', 'attention_mask'] if
+		                k in tok_sentences}
 
 		# perform embedding forward pass
 		if self._static:
@@ -179,7 +192,7 @@ class TransformerEmbeddings(Embeddings):
 			model_outputs = self._lm(**model_inputs, output_hidden_states=True)
 		# extract embeddings from relevant layer
 		hidden_states = model_outputs.hidden_states  # tuple(num_layers * (batch_size, max_len, hidden_dim))
-		emb_pieces = hidden_states[self._lm_layer] # batch_size, max_len, hidden_dim
+		emb_pieces = hidden_states[self._lm_layer]  # batch_size, max_len, hidden_dim
 
 		# if input is already tokenized, reduce WordPiece to words
 		if self._tokenized:
@@ -259,6 +272,7 @@ class TransformerEmbeddings(Embeddings):
 
 		return emb_words, att_words
 
+
 #
 # Pooling Functions
 # (for sentence classification)
@@ -276,6 +290,7 @@ def get_mean_embedding(token_embeddings):
 
 def get_first_embedding(token_embeddings):
 	return token_embeddings[0]
+
 
 #
 # Helper Functions

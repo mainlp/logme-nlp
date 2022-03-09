@@ -4,10 +4,10 @@ DATA_PATH=/home/max/data/airline
 EXP_PATH=/home/max/exp/logme/airline
 # Experiment Parameters
 ENCODERS=( "bert-base-uncased" "roberta-base" "distilbert-base-uncased" "emilyalsentzer/Bio_ClinicalBERT" "dmis-lab/biobert-v1.1" "cardiffnlp/twitter-roberta-base" "allenai/scibert_scivocab_uncased" )
-EMB_TYPE="transformer"
-POOLING="mean"
-#EMB_TYPE="transformer+cls"
-#POOLING="first"
+#EMB_TYPE="transformer"
+#POOLING="mean"
+EMB_TYPE="transformer+cls"
+POOLING="first"
 CLASSIFIER="mlp"
 SEEDS=( 4012 5060 8823 8857 9908 )
 
@@ -25,7 +25,7 @@ for rsd_idx in "${!SEEDS[@]}"; do
     else
       echo "Training ${CLASSIFIER}-classifier using '${ENCODERS[$enc_idx]}' and random seed ${SEEDS[$rsd_idx]}."
       # train classifier
-      python ../../classify.py \
+      python classify.py \
         --task "sequence_classification" \
         --train_path $DATA_PATH/notok-train.csv \
         --test_path $DATA_PATH/notok-dev.csv \
@@ -45,7 +45,7 @@ for rsd_idx in "${!SEEDS[@]}"; do
     # if no prediction is available, run inference
     else
       # run prediction
-      python ../../classify.py \
+      python classify.py \
         --task "sequence_classification" \
         --train_path $DATA_PATH/notok-train.csv \
         --test_path $DATA_PATH/notok-dev.csv \
@@ -58,7 +58,7 @@ for rsd_idx in "${!SEEDS[@]}"; do
     fi
 
     # run evaluation
-    python ../../evaluate.py \
+    python evaluate.py \
       --gold_path ${DATA_PATH}/notok-dev.csv \
       --pred_path ${exp_dir}/notok-dev-pred.csv \
       --out_path ${exp_dir}
