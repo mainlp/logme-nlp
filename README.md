@@ -1,8 +1,6 @@
 # LogME Framework
 
-## *Under construction*
-
-Code for Transferability Estimation for Task-adaptive Transfer Learning.
+Code for Evidence > Intuition: Transferability Estimation for Encoder Selection.
 
 The Logarithm of Maximum Evidence (LogME) can be used to assess pre-trained models for transfer learning: a pre-trained 
 model with a high LogME value is likely to have good transfer performance
@@ -11,10 +9,10 @@ model with a high LogME value is likely to have good transfer performance
 ## Project Structure
 ```
 project
-├── resources (run setup.sh)
-│   ├── data (run setup.sh)
+├── resources (run setup.sh and add data)
+│   ├── data (run setup.sh and add data)
 │   │   └── *
-│   ├── output (run setup.sh)
+│   ├── output (run setup.sh and add data)
 │   │   └── * 
 ├── src
 │   ├── classification
@@ -42,6 +40,8 @@ project
 │   │   ├── convert_airline.py
 │   │   ├── run_classification.sh
 │   │   └── run_logme.sh
+│   ├── human
+│   │   └── evaluate_rankings.py
 ├── .gitignore
 ├── classify.py
 ├── evaluate.py
@@ -106,7 +106,7 @@ name of the dataset in `main.py`.
 ## Examples
 For detailed example scripts check `project/tasks/*`.
 
-### 1. Calculate LogME
+### 1. Calculate LogME (example)
 ```bash
 #!/bin/bash
 
@@ -145,9 +145,79 @@ for enc_idx in "${!ENCODERS[@]}"; do
 done
 ```
 
-### 2. Model fine-tuning
+### 2. Model fine-tuning (example)
+```
+#!/bin/bash
 
-### 3. Evaluation
+DATA_PATH=~/project/resources/data/airline
+EXP_PATH=~/project/exp/logme/airline
+# Experiment Parameters
+ENCODERS=( "bert-base-uncased" "roberta-base" "distilbert-base-uncased" "emilyalsentzer/Bio_ClinicalBERT" "dmis-lab/biobert-v1.1" "cardiffnlp/twitter-roberta-base" "allenai/scibert_scivocab_uncased" )
+#EMB_TYPE="transformer"
+#POOLING="mean"
+EMB_TYPE="transformer+cls"
+POOLING="first"
+CLASSIFIER="mlp"
+SEEDS=( 4012 5060 8823 8857 9908 )
+
+# iterate over seeds
+for rsd_idx in "${!SEEDS[@]}"; do
+  # iterate over encoders
+  for enc_idx in "${!ENCODERS[@]}"; do
+    echo "Experiment: '${ENCODERS[$enc_idx]}' and random seed ${SEEDS[$rsd_idx]}."
+
+    exp_dir=$EXP_PATH/model${enc_idx}-${POOLING}-${CLASSIFIER}-rs${SEEDS[$rsd_idx]}
+    # check if experiment already exists
+    if [ -f "$exp_dir/best.pt" ]; then
+      echo "[Warning] Experiment '$exp_dir' already exists. Not retraining."
+    # if experiment is new, train classifier
+    else
+      echo "Training ${CLASSIFIER}-classifier using '${ENCODERS[$enc_idx]}' and random seed ${SEEDS[$rsd_idx]}."
+      # train classifier
+      python classify.py \
+        --task "sequence_classification" \
+        --train_path $DATA_PATH/notok-train.csv \
+        --test_path $DATA_PATH/notok-dev.csv \
+        --exp_path ${exp_dir} \
+        --embedding_model ${EMB_TYPE}:${ENCODERS[$enc_idx]} \
+        --pooling ${POOLING} \
+        --classifier ${CLASSIFIER} \
+        --seed ${SEEDS[$rsd_idx]}
+
+      # save experiment info
+      echo "${EMB_TYPE}:${ENCODERS[$enc_idx]} -> ${POOLING} -> ${CLASSIFIER} with RS=${SEEDS[$rsd_idx]}" > $exp_dir/experiment-info.txt
+    fi
+
+    # check if prediction already exists
+    if [ -f "$exp_dir/notok-dev-pred.csv" ]; then
+      echo "[Warning] Prediction '$exp_dir/notok-dev-pred.csv' already exists. Not re-predicting."
+    # if no prediction is available, run inference
+    else
+      # run prediction
+      python classify.py \
+        --task "sequence_classification" \
+        --train_path $DATA_PATH/notok-train.csv \
+        --test_path $DATA_PATH/notok-dev.csv \
+        --exp_path ${exp_dir} \
+        --embedding_model ${EMB_TYPE}:${ENCODERS[$enc_idx]} \
+        --pooling ${POOLING} \
+        --classifier ${CLASSIFIER} \
+        --seed ${SEEDS[$rsd_idx]} \
+        --prediction_only
+    fi
+
+    # run evaluation
+    python evaluate.py \
+      --gold_path ${DATA_PATH}/notok-dev.csv \
+      --pred_path ${exp_dir}/notok-dev-pred.csv \
+      --out_path ${exp_dir}
+
+    echo
+  done
+done
+```
+
+### 3. Evaluation (example)
 ```bash
 # path to your data
 DATA_PATH=~/project/resources/data/jobstack
