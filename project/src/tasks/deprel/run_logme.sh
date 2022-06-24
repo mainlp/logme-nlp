@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DATA_PATH=/home/max/data/ud29/deprel
+DATA_PATH=project/resources/data/ud29/deprel
 TREEBANK="en-ewt"
 EMB_TYPE="transformer"
 ENCODERS=( "bert-base-uncased" "roberta-base" "distilbert-base-uncased" "emilyalsentzer/Bio_ClinicalBERT" "dmis-lab/biobert-v1.1" "cardiffnlp/twitter-roberta-base" "allenai/scibert_scivocab_uncased" )

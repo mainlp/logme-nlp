@@ -1,7 +1,7 @@
 #!/bin/bash
 
-DATA_PATH=/home/max/data/ud29/deprel
-EXP_PATH=/home/max/exp/logme/deprel
+DATA_PATH=project/resources/data/ud29/deprel
+EXP_PATH=project/resources/deprel
 # Experiment Parameters
 ENCODERS=( "bert-base-uncased" "roberta-base" "distilbert-base-uncased" "emilyalsentzer/Bio_ClinicalBERT" "dmis-lab/biobert-v1.1" "cardiffnlp/twitter-roberta-base" "allenai/scibert_scivocab_uncased" )
 EMB_TYPE="transformer"

@@ -1,10 +1,8 @@
 # LogME Framework
 
-Code for Evidence > Intuition: Transferability Estimation for Encoder Selection.
+Anonymized code for **Evidence > Intuition: Transferability Estimation for Encoder Selection**.
 
-The Logarithm of Maximum Evidence (LogME) can be used to assess pre-trained models for transfer learning: a pre-trained 
-model with a high LogME value is likely to have good transfer performance
-(<a href="http://proceedings.mlr.press/v139/you21b/you21b.pdf">You et al., 2021</a>).
+This repository contains implementations to compute and evaluate the Logarithm of Maximum Evidence (LogME) on a wide variety of Natural Language Processing (NLP) tasks. It can be used to assess pre-trained models for transfer learning, where a pre-trained model with a high LogME value is likely to have good transfer performance (<a href="http://proceedings.mlr.press/v139/you21b/you21b.pdf">You et al., 2021</a>).
 
 ## Project Structure
 ```
@@ -31,17 +29,21 @@ project
 │   │   ├── leep.py (deprecated)
 │   │   ├── load_data.py
 │   │   └── logme.py
-├── tasks
-│   ├── deprel
-│   │   ├── convert_ud.py
-│   │   ├── run_classification.sh
-│   │   └── run_logme.sh
-│   ├── sentiment
-│   │   ├── convert_airline.py
-│   │   ├── run_classification.sh
-│   │   └── run_logme.sh
-│   ├── human
-│   │   └── evaluate_rankings.py
+│   ├── tasks
+│   │   ├── deprel
+│   │   │   ├── convert.py
+│   │   │   ├── run_classification.sh
+│   │   │   └── run_logme.sh
+│   │   ├── glue
+│   │   │   ├── convert.py
+│   │   │   ├── run_classification.sh
+│   │   │   └── run_logme.sh
+│   │   ├── sentiment
+│   │   │   ├── convert.py
+│   │   │   ├── run_classification.sh
+│   │   │   └── run_logme.sh
+│   │   ├── human
+│   │   │   └── evaluate_rankings.py
 ├── .gitignore
 ├── classify.py
 ├── evaluate.py
@@ -68,23 +70,28 @@ pip install --user -r requirements.txt
 #### Setup
 Run `bash setup.sh` to create the appropriate directory paths.
 
-## Usages
-There are three scripts to use:
-```python
-main.py
-classify.py
-evaluate.py
+## Usage
+There are three main scripts used in all experiments:
+```bash
+# LogME Calculation for a dataset-LM pair
+python main.py
 
-# check usage by e.g.
+# Classifier training using a dataset-LM pair
+python classify.py
+
+# Evaluation of predictions
+python evaluate.py
+```
+
+For detailed usage, please refer to the examples below, and to the help output of each script:
+
+```bash
 python main.py -h
 ```
 
 ## Data
 
-To run **LogME** on your data. The data needs to be pre-tokenized in a **.csv** format, where the labels must be 
-converted to 
-unique 
-integers:
+To run **LogME** on your data. The data needs to be pre-processed into a **.csv** format, where the labels must be converted to unique integers. If your dataset is available in <a href=https://huggingface.co/datasets>HuggingFace Datasets</a> you can use the name of the dataset in `main.py`.
 
 #### Sequence Classification
 ```csv
@@ -94,14 +101,32 @@ integers:
 ```
 
 #### Sequence Labeling
+
 ```csv
 "text","label"
 "this is New York .","0 0 1 2 0"
 ...
 ```
 
-If your dataset is available in <a href=https://huggingface.co/datasets>HuggingFace Datasets</a> you can use the 
-name of the dataset in `main.py`.
+Note that sequence labeling tasks require a pre-tokenized, space-separated input which has exactly as many tokens as labels.
+
+## Experiments
+
+Each experiment has a dedicated directory in `project/src/tasks/` containing a script for dataset conversion into the unified CSV-format (`convert.py`), LogME calculation (`run_logme.sh`), and classifier training and evaluation (`run_classification.sh`).
+
+While many datasets are downloaded automatically, some require a separate, manual download (e.g., due to licensing). The tasks and corresponding datasets covered in the main paper are as follows:
+
+* **AGNews (Zhang et al., 2015)**
+* **Airline Twitter (Crowdflower, 2020)** is a sentiment analysis dataset, the scripts for which can be found in `project/src/tasks/sentiment/`. It requires a separate download of the original data files.
+* **SciERC (Luan et al., 2018)**
+* **MNLI (Williams et al., 2018)** is a natural language inference dataset, the scripts for which can be found in `project/src/tasks/glue/`. The original data is downloaded automatically during the conversion process.
+* **QNLI (Rajpurkar et al., 2016)** is a question answering / natural language inference dataset, the scripts for which can be found in `project/src/tasks/glue/`. The original data is downloaded automatically during the conversion process.
+* **RTE (Giampiccolo et al., 2007)** is a natural language inference dataset, the scripts for which can be found in `project/src/tasks/glue/`. The original data is downloaded automatically during the conversion process.
+* **EWT (Silveira et all., 2014)** is a syntactic dependency treebank, the scripts for which can be found in `project/src/tasks/sentiment/`. It requires a separate download of the original data files.
+* **CrossNER (Liu et al., 2021)**
+* **JobStack (Jensen et al., 2021)**
+
+To run specific configurations of the experiments above, such as "mean-pooled sequence classification on BioBERT with full fine-tuning" etc., please refer to the examples below.
 
 ## Examples
 For detailed example scripts check `project/tasks/*`.
@@ -111,7 +136,7 @@ For detailed example scripts check `project/tasks/*`.
 #!/bin/bash
 
 # path to your data
-DATA_PATH=~/project/resources/data/airline
+DATA_PATH=project/resources/data/airline
 # the type of embedding to calculate LogME on (e.g., [cls]-token or the mean of subwords) 
 # [transformer, transformer+cls]
 EMB_TYPE="transformer+cls"
@@ -127,7 +152,7 @@ ENCODERS=( "bert-base-uncased"
 POOLING="first"
 
 # prepare and split data
-python convert_airline.py $DATA_PATH/Tweets.csv $DATA_PATH/notok -rs 4012
+python project/src/tasks/sentiment/convert.py $DATA_PATH/Tweets.csv $DATA_PATH/ -rs 4012
 
 # iterate over encoders
 for enc_idx in "${!ENCODERS[@]}"; do
@@ -136,8 +161,8 @@ for enc_idx in "${!ENCODERS[@]}"; do
   python main.py \
     # sequence_classification OR sequence_labeling
     --task "sequence_classification" \
-    --train_path $DATA_PATH/notok-train.csv \
-    --test_path $DATA_PATH/notok-test.csv \
+    --train_path $DATA_PATH/train.csv \
+    --test_path $DATA_PATH/test.csv \
     # column headers in your .csv file
     --text_column text --label_column label \
     --embedding_model ${EMB_TYPE}:${ENCODERS[$enc_idx]} \
@@ -146,11 +171,11 @@ done
 ```
 
 ### 2. Model fine-tuning (example)
-```
+```bash
 #!/bin/bash
 
-DATA_PATH=~/project/resources/data/airline
-EXP_PATH=~/project/exp/logme/airline
+DATA_PATH=project/resources/data/airline
+EXP_PATH=project/output/sentiment
 # Experiment Parameters
 ENCODERS=( "bert-base-uncased" "roberta-base" "distilbert-base-uncased" "emilyalsentzer/Bio_ClinicalBERT" "dmis-lab/biobert-v1.1" "cardiffnlp/twitter-roberta-base" "allenai/scibert_scivocab_uncased" )
 #EMB_TYPE="transformer"
@@ -176,8 +201,8 @@ for rsd_idx in "${!SEEDS[@]}"; do
       # train classifier
       python classify.py \
         --task "sequence_classification" \
-        --train_path $DATA_PATH/notok-train.csv \
-        --test_path $DATA_PATH/notok-dev.csv \
+        --train_path $DATA_PATH/train.csv \
+        --test_path $DATA_PATH/dev.csv \
         --exp_path ${exp_dir} \
         --embedding_model ${EMB_TYPE}:${ENCODERS[$enc_idx]} \
         --pooling ${POOLING} \
@@ -189,15 +214,15 @@ for rsd_idx in "${!SEEDS[@]}"; do
     fi
 
     # check if prediction already exists
-    if [ -f "$exp_dir/notok-dev-pred.csv" ]; then
-      echo "[Warning] Prediction '$exp_dir/notok-dev-pred.csv' already exists. Not re-predicting."
+    if [ -f "$exp_dir/dev-pred.csv" ]; then
+      echo "[Warning] Prediction '$exp_dir/dev-pred.csv' already exists. Not re-predicting."
     # if no prediction is available, run inference
     else
       # run prediction
       python classify.py \
         --task "sequence_classification" \
-        --train_path $DATA_PATH/notok-train.csv \
-        --test_path $DATA_PATH/notok-dev.csv \
+        --train_path $DATA_PATH/train.csv \
+        --test_path $DATA_PATH/dev.csv \
         --exp_path ${exp_dir} \
         --embedding_model ${EMB_TYPE}:${ENCODERS[$enc_idx]} \
         --pooling ${POOLING} \
@@ -208,8 +233,8 @@ for rsd_idx in "${!SEEDS[@]}"; do
 
     # run evaluation
     python evaluate.py \
-      --gold_path ${DATA_PATH}/notok-dev.csv \
-      --pred_path ${exp_dir}/notok-dev-pred.csv \
+      --gold_path ${DATA_PATH}/dev.csv \
+      --pred_path ${exp_dir}/dev-pred.csv \
       --out_path ${exp_dir}
 
     echo

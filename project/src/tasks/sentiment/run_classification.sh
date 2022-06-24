@@ -1,7 +1,7 @@
 #!/bin/bash
 
-DATA_PATH=/home/max/data/airline
-EXP_PATH=/home/max/exp/logme/airline
+DATA_PATH=project/resources/data/airline
+EXP_PATH=project/resources/output/sentiment
 # Experiment Parameters
 ENCODERS=( "bert-base-uncased" "roberta-base" "distilbert-base-uncased" "emilyalsentzer/Bio_ClinicalBERT" "dmis-lab/biobert-v1.1" "cardiffnlp/twitter-roberta-base" "allenai/scibert_scivocab_uncased" )
 #EMB_TYPE="transformer"
@@ -27,8 +27,8 @@ for rsd_idx in "${!SEEDS[@]}"; do
       # train classifier
       python classify.py \
         --task "sequence_classification" \
-        --train_path $DATA_PATH/notok-train.csv \
-        --test_path $DATA_PATH/notok-dev.csv \
+        --train_path $DATA_PATH/train.csv \
+        --test_path $DATA_PATH/dev.csv \
         --exp_path ${exp_dir} \
         --embedding_model ${EMB_TYPE}:${ENCODERS[$enc_idx]} \
         --pooling ${POOLING} \
@@ -40,15 +40,15 @@ for rsd_idx in "${!SEEDS[@]}"; do
     fi
 
     # check if prediction already exists
-    if [ -f "$exp_dir/notok-dev-pred.csv" ]; then
-      echo "[Warning] Prediction '$exp_dir/notok-dev-pred.csv' already exists. Not re-predicting."
+    if [ -f "$exp_dir/dev-pred.csv" ]; then
+      echo "[Warning] Prediction '$exp_dir/dev-pred.csv' already exists. Not re-predicting."
     # if no prediction is available, run inference
     else
       # run prediction
       python classify.py \
         --task "sequence_classification" \
-        --train_path $DATA_PATH/notok-train.csv \
-        --test_path $DATA_PATH/notok-dev.csv \
+        --train_path $DATA_PATH/train.csv \
+        --test_path $DATA_PATH/dev.csv \
         --exp_path ${exp_dir} \
         --embedding_model ${EMB_TYPE}:${ENCODERS[$enc_idx]} \
         --pooling ${POOLING} \
@@ -59,8 +59,8 @@ for rsd_idx in "${!SEEDS[@]}"; do
 
     # run evaluation
     python evaluate.py \
-      --gold_path ${DATA_PATH}/notok-dev.csv \
-      --pred_path ${exp_dir}/notok-dev-pred.csv \
+      --gold_path ${DATA_PATH}/dev.csv \
+      --pred_path ${exp_dir}/dev-pred.csv \
       --out_path ${exp_dir}
 
     echo
