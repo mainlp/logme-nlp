@@ -39,7 +39,7 @@ project
 │   │   │   ├── run_classification.sh
 │   │   │   ├── run_classification_tuned.sh
 │   │   │   ├── run_logme.sh
-│   │   │   └── news-labels.json
+│   │   │   └── science-labels.json
 │   │   ├── deidentification
 │   │   │   ├── run_classification.sh
 │   │   │   ├── run_classification_tuned.sh
