@@ -30,6 +30,9 @@ project
 │   │   ├── load_data.py
 │   │   └── logme.py
 │   ├── tasks
+│   │   ├── deidentification
+│   │   │   ├── run_classification.sh
+│   │   │   └── run_logme.sh
 │   │   ├── deprel
 │   │   │   ├── convert.py
 │   │   │   ├── run_classification.sh
@@ -40,6 +43,10 @@ project
 │   │   │   └── run_logme.sh
 │   │   ├── sentiment
 │   │   │   ├── convert.py
+│   │   │   ├── run_classification.sh
+│   │   │   └── run_logme.sh
+│   │   ├── topic
+│   │   │   ├── convert_news.py
 │   │   │   ├── run_classification.sh
 │   │   │   └── run_logme.sh
 │   │   ├── human
@@ -116,7 +123,7 @@ Each experiment has a dedicated directory in `project/src/tasks/` containing a s
 
 While many datasets are downloaded automatically, some require a separate, manual download (e.g., due to licensing). The tasks and corresponding datasets covered in the main paper are as follows:
 
-* **AGNews (Zhang et al., 2015)**
+* **AGNews (Zhang et al., 2015)** is a news topic classification dataset, the scripts for which can be found in `project/src/tasks/topic/`. The data is obtained from `huggingface`.
 * **Airline Twitter (Crowdflower, 2020)** is a sentiment analysis dataset, the scripts for which can be found in `project/src/tasks/sentiment/`. It requires a separate download of the original data files.
 * **SciERC (Luan et al., 2018)**
 * **MNLI (Williams et al., 2018)** is a natural language inference dataset, the scripts for which can be found in `project/src/tasks/glue/`. The original data is downloaded automatically during the conversion process.
@@ -124,7 +131,7 @@ While many datasets are downloaded automatically, some require a separate, manua
 * **RTE (Giampiccolo et al., 2007)** is a natural language inference dataset, the scripts for which can be found in `project/src/tasks/glue/`. The original data is downloaded automatically during the conversion process.
 * **EWT (Silveira et all., 2014)** is a syntactic dependency treebank, the scripts for which can be found in `project/src/tasks/sentiment/`. It requires a separate download of the original data files.
 * **CrossNER (Liu et al., 2021)**
-* **JobStack (Jensen et al., 2021)**
+* **JobStack (Jensen et al., 2021)** is a deidentification of job postings dataset, the scripts for which can be found in `projects/src/tasks/deidentification/`. The data is obtained from the authors.
 
 To run specific configurations of the experiments above, such as "mean-pooled sequence classification on BioBERT with full fine-tuning" etc., please refer to the examples below.
 
