@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DATA_PATH=project/resources/data
+DATA_PATH=project/resources/data/topic
 EXP_PATH=project/resources/output/topic
 # Experiment Parameters
 ENCODERS=( "bert-base-uncased" "roberta-base" "distilbert-base-uncased" "emilyalsentzer/Bio_ClinicalBERT" "dmis-lab/biobert-v1.1" "cardiffnlp/twitter-roberta-base" "allenai/scibert_scivocab_uncased" )
