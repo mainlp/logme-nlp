@@ -7,8 +7,7 @@ ENCODERS=( "bert-base-uncased" "roberta-base" "distilbert-base-uncased" "emilyal
 EMB_TYPE="transformer+cls"
 POOLING="first"
 CLASSIFIER="mlp"
-#SEEDS=( 4012 5060 8823 8857 9908 )
-SEEDS=(8823 8857 9908 )
+SEEDS=( 4012 5060 8823 8857 9908 )
 
 # iterate over seeds
 for rsd_idx in "${!SEEDS[@]}"; do
