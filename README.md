@@ -30,6 +30,16 @@ project
 │   │   ├── load_data.py
 │   │   └── logme.py
 │   ├── tasks
+│   │   ├── crossner-news
+│   │   │   ├── news-labels.json
+│   │   │   ├── run_classification.sh
+│   │   │   ├── run_classification_tuned.sh
+│   │   │   └── run_logme.sh
+│   │   ├── crossner-science
+│   │   │   ├── run_classification.sh
+│   │   │   ├── run_classification_tuned.sh
+│   │   │   ├── run_logme.sh
+│   │   │   └── news-labels.json
 │   │   ├── deidentification
 │   │   │   ├── run_classification.sh
 │   │   │   ├── run_classification_tuned.sh
@@ -41,6 +51,10 @@ project
 │   │   ├── glue
 │   │   │   ├── convert.py
 │   │   │   ├── run_classification.sh
+│   │   │   └── run_logme.sh
+│   │   ├── relclass
+│   │   │   ├── run_classification.sh
+│   │   │   ├── run_classification_tuned.sh
 │   │   │   └── run_logme.sh
 │   │   ├── sentiment
 │   │   │   ├── convert.py
@@ -127,12 +141,12 @@ While many datasets are downloaded automatically, some require a separate, manua
 
 * **AGNews (Zhang et al., 2015)** is a news topic classification dataset, the scripts for which can be found in `project/src/tasks/topic/`. The data is obtained from `huggingface`.
 * **Airline Twitter (Crowdflower, 2020)** is a sentiment analysis dataset, the scripts for which can be found in `project/src/tasks/sentiment/`. It requires a separate download of the original data files.
-* **SciERC (Luan et al., 2018)** is a relation classification dataset. It requires a separate download of the original data files.
+* **SciERC (Luan et al., 2018)** is a relation classification dataset, the scripts for which can be found in `project/src/tasks/relclass/`. It requires a separate download of the original data files.
 * **MNLI (Williams et al., 2018)** is a natural language inference dataset, the scripts for which can be found in `project/src/tasks/glue/`. The original data is downloaded automatically during the conversion process.
 * **QNLI (Rajpurkar et al., 2016)** is a question answering / natural language inference dataset, the scripts for which can be found in `project/src/tasks/glue/`. The original data is downloaded automatically during the conversion process.
 * **RTE (Giampiccolo et al., 2007)** is a natural language inference dataset, the scripts for which can be found in `project/src/tasks/glue/`. The original data is downloaded automatically during the conversion process.
 * **EWT (Silveira et all., 2014)** is a syntactic dependency treebank, the scripts for which can be found in `project/src/tasks/sentiment/`. It requires a separate download of the original data files.
-* **CrossNER (Liu et al., 2021)** is a named entity recognition dataset. It requires a separate download of the original data files.
+* **CrossNER (Liu et al., 2021)** is a named entity recognition dataset, the scripts for which can be found in `project/src/tasks/crossner-{news,science}/`. It requires a separate download of the original data files.
 * **JobStack (Jensen et al., 2021)** is a deidentification of job postings dataset, the scripts for which can be found in `projects/src/tasks/deidentification/`. The data is obtained from the authors.
 
 To run specific configurations of the experiments above, such as "mean-pooled sequence classification on BioBERT with full fine-tuning" etc., please refer to the examples below.
