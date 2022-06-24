@@ -32,6 +32,7 @@ project
 │   ├── tasks
 │   │   ├── deidentification
 │   │   │   ├── run_classification.sh
+│   │   │   ├── run_classification_tuned.sh
 │   │   │   └── run_logme.sh
 │   │   ├── deprel
 │   │   │   ├── convert.py
@@ -48,6 +49,7 @@ project
 │   │   ├── topic
 │   │   │   ├── convert_news.py
 │   │   │   ├── run_classification.sh
+│   │   │   ├── run_classification_tuned.sh
 │   │   │   └── run_logme.sh
 │   │   ├── human
 │   │   │   └── evaluate_rankings.py
