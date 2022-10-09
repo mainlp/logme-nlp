@@ -1,10 +1,22 @@
 # LogME Framework
 
-Anonymized code for **Evidence > Intuition: Transferability Estimation for Encoder Selection**.
+Code for **Evidence > Intuition: Transferability Estimation for Encoder Selection**.
+
+Elisa Bassignana, Max Müller-Eberstein, Mike Zhang, Barbara Plank
+
+In Proceedings of the Conference on Empirical Methods in Natural Language Processing, EMNLP 2022
 
 This repository contains implementations to compute and evaluate the Logarithm of Maximum Evidence (LogME) on a wide variety of Natural Language Processing (NLP) tasks. It can be used to assess pre-trained models for transfer learning, where a pre-trained model with a high LogME value is likely to have good transfer performance (<a href="http://proceedings.mlr.press/v139/you21b/you21b.pdf">You et al., 2021</a>).
 
+## Citation
+
+```
+Coming soon
+```
+
+
 ## Project Structure
+
 ```
 project
 ├── resources (run setup.sh and add data)
