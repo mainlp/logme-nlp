@@ -1,4 +1,4 @@
-# LogME Framework
+# Evidence > Intuition
 
 Code for **Evidence > Intuition: Transferability Estimation for Encoder Selection**.
 
