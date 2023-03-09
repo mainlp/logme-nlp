@@ -11,7 +11,21 @@ This repository contains implementations to compute and evaluate the Logarithm o
 ## Citation
 
 ```
-Coming soon
+@inproceedings{bassignana-etal-2022-evidence,
+    title = "Evidence {\textgreater} Intuition: Transferability Estimation for Encoder Selection",
+    author = {Bassignana, Elisa  and
+      M{\"u}ller-Eberstein, Max  and
+      Zhang, Mike  and
+      Plank, Barbara},
+    booktitle = "Proceedings of the 2022 Conference on Empirical Methods in Natural Language Processing",
+    month = dec,
+    year = "2022",
+    address = "Abu Dhabi, United Arab Emirates",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2022.emnlp-main.283",
+    pages = "4218--4227",
+    abstract = "With the increase in availability of large pre-trained language models (LMs) in Natural Language Processing (NLP), it becomes critical to assess their fit for a specific target task a priori{---}as fine-tuning the entire space of available LMs is computationally prohibitive and unsustainable. However, encoder transferability estimation has received little to no attention in NLP. In this paper, we propose to generate quantitative evidence to predict which LM, out of a pool of models, will perform best on a target task without having to fine-tune all candidates. We provide a comprehensive study on LM ranking for 10 NLP tasks spanning the two fundamental problem types of classification and structured prediction. We adopt the state-of-the-art Logarithm of Maximum Evidence (LogME) measure from Computer Vision (CV) and find that it positively correlates with final LM performance in 94{\%} of the setups.In the first study of its kind, we further compare transferability measures with the de facto standard of human practitioner ranking, finding that evidence from quantitative metrics is more robust than pure intuition and can help identify unexpected LM candidates.",
+}
 ```
 
 
